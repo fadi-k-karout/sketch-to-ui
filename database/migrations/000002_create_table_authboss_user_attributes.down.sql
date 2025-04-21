@@ -1,1 +1,0 @@
-DROP TABLE IF EXISTS authboss_user_attributes
