@@ -1,22 +1,150 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Register</title>
-  </head>
-  <body>
-    <h1>Register</h1>
-    <form method="post">
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" /><br /><br />
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" /><br /><br />
-      <label for="confirm_password">Confirm Password:</label>
-      <input
-        type="password"
-        id="confirm_password"
-        name="confirm_password"
-      /><br /><br />
-      <input type="submit" value="Register" />
-    </form>
-  </body>
-</html>
+{{ define "register" }}
+
+<div class="flex justify-center max-h-[80vh]" x-data="signupForm()">
+  <div class="card w-96 bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Sign Up</h2>
+      <form
+        hx-post="/signup"
+        hx-push-url="false"
+        hx-target="#content"
+        hx-swap="innerHTML"
+      >
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">First Name</span>
+          </label>
+          <input
+            class="input validator"
+            type="text"
+            name="first_name"
+            required
+            placeholder="First Name"
+          />
+          <div class="validator-hint">Enter valid first name</div>
+        </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Email</span>
+          </label>
+          <input
+            class="input validator"
+            type="email"
+            name="email"
+            required
+            placeholder="mail@site.com"
+          />
+          <div class="validator-hint">Enter valid email address</div>
+        </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Password</span>
+          </label>
+          <div class="flex flex-col">
+            <div class="relative">
+              <input
+                :type="showPassword ? 'text' : 'password'"
+              type="password"
+              name="password"
+              class="input validator"
+              required
+              placeholder="Password"
+              minlength="8"
+              pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+              title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
+              x-model="password"
+            />
+
+            <p class="validator-hint">
+              Must be more than 10 characters, including
+              <br />At least one number <br />At least one lowercase letter
+              <br />At least one uppercase letter
+            </p>
+            <button
+              type="button"
+              class="absolute right-6 top-3 text-gray-500 hover:text-gray-700"
+              @click="showPassword = !showPassword"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Confirm Password</span>
+          </label>
+          
+          <div class="relative">
+            <input
+              :type="showConfirmPassword ? 'text' : 'password'"
+              name="confirm_password"
+              class="input validator"
+              required
+              placeholder="Confirm Password"
+              x-model="confirmPassword"
+            />
+            <button
+              type="button"
+              class="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              @click="showConfirmPassword = !showConfirmPassword"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+          <p
+            class="text-error"
+            x-show="password !== confirmPassword && confirmPassword !== ''"
+          >
+            Passwords do not match
+          </p>
+        </div>
+        <div class="form-control mt-6">
+          <button
+            class="btn btn-wide btn-primary"
+            type="submit"
+            
+          >
+            Sign Up
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function signupForm() {
+    return {
+      password: "",
+      confirmPassword: "",
+      showPassword: false,
+      showConfirmPassword: false,
+    };
+  }
+</script>
+
+{{ end }}

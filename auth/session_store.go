@@ -1,88 +1,99 @@
 package auth
 
 import (
-    "context"
-    "fmt"
+	"net/http"
+	"time"
 
-    "github.com/gofiber/fiber/v2"
-    fiberSession "github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/sessions" // Import gorilla/sessions
 )
 
-type fiberSessionStore struct {
-    store *fiberSession.Store
+// SessionStore is now using gorilla/sessions.CookieStore
+type SessionStore struct {
+	store           *sessions.CookieStore // Use gorilla/sessions CookieStore
+	cookieName      string
+	sessionDuration time.Duration
 }
 
-func NewFiberSessionStore(store *fiberSession.Store) *fiberSessionStore {
-    return &fiberSessionStore{store: store}
+func NewSessionStore(cookieName string, sessionDuration time.Duration, secretKey string, isProduction bool) *SessionStore {
+	cookieStore := sessions.NewCookieStore([]byte(secretKey)) // Initialize gorilla/sessions CookieStore
+	// Configure cookie options (optional, but good practice)
+	cookieStore.Options = &sessions.Options{
+		HttpOnly: true,
+		Secure:   isProduction, // Set to true in production with HTTPS
+		SameSite: http.SameSiteStrictMode,
+		Path:     "/",
+        MaxAge: int(sessionDuration.Seconds()),
+		
+	}
+
+	return &SessionStore{
+		store:           cookieStore,
+		cookieName:      cookieName,
+		sessionDuration: sessionDuration,
+	}
 }
 
-func (s *fiberSessionStore) GetPID(ctx context.Context) (string, error) {
-    c, ok := ctx.Value("fiberCtx").(*fiber.Ctx)
-    if !ok {
-        return "", fmt.Errorf("could not get fiber context")
-    }
-    sess, err := s.store.Get(c)
-    if err != nil {
-        return "", err
-    }
-    raw := sess.Get("ab_pid")
-    pid, ok := raw.(string)
-    if !ok || pid == "" {
-        return "", fmt.Errorf("pid not found or not a string")
-    }
-    return pid, nil
+// SetSession creates a new session and sets the session cookie using gorilla/sessions.
+func (s *SessionStore) SetSession(c *gin.Context, userID int) {
+	session, err := s.store.Get(c.Request, s.cookieName) // Get session from gorilla/sessions
+	if err != nil {
+		// Handle error, maybe log it. For now, continue.
+	}
+
+	session.Values["userID"] = userID                           // Set user ID in session values
+
+
+	err = session.Save(c.Request, c.Writer) // Save session using gorilla/sessions
+	if err != nil {
+		// Handle save error, maybe log it. For now, continue.
+	}
 }
 
-func (s *fiberSessionStore) SetPID(ctx context.Context, pid string) error {
-    c, ok := ctx.Value("fiberCtx").(*fiber.Ctx)
-    if !ok {
-        return fmt.Errorf("could not get fiber context")
-    }
-    sess, err := s.store.Get(c)
-    if err != nil {
-        return err
-    }
-    sess.Set("ab_pid", pid)
-    return sess.Save()
+// GetSession retrieves the user ID from the session cookie using gorilla/sessions.
+func (s *SessionStore) GetSession(c *gin.Context) (int, bool) {
+	session, err := s.store.Get(c.Request, s.cookieName) // Get session from gorilla/sessions
+	if err != nil {
+		return 0, false // No session or error
+	}
+
+	// Check if user ID exists and is of the correct type
+	userIDValue := session.Values["userID"]
+	if userIDValue == nil {
+		return 0, false // User ID not in session
+	}
+	userID, ok := userIDValue.(int) // Type assertion to int
+	if !ok {
+		return 0, false // Type assertion failed
+	}
+
+	return userID, true
 }
 
-// Get retrieves any key from the session.
-func (s *fiberSessionStore) Get(ctx context.Context, key string) (interface{}, error) {
-    c, ok := ctx.Value("fiberCtx").(*fiber.Ctx)
-    if !ok {
-        return nil, fmt.Errorf("could not get fiber context")
-    }
-    sess, err := s.store.Get(c)
-    if err != nil {
-        return nil, err
-    }
-    return sess.Get(key), nil
+// ClearSession removes the session cookie and server-side session data using gorilla/sessions.
+func (s *SessionStore) ClearSession(c *gin.Context) {
+	session, err := s.store.Get(c.Request, s.cookieName) // Get session from gorilla/sessions
+	if err != nil {
+		return // Session likely doesn't exist, nothing to clear
+	}
+
+	session.Options.MaxAge = -1             // Set MaxAge to -1 to delete the cookie
+	err = session.Save(c.Request, c.Writer) // Save session to delete cookie
+	if err != nil {
+		// Handle save error, maybe log it. For now, continue.
+	}
+	// gorilla/sessions handles server-side clearing of cookie-based sessions automatically
 }
 
-// Set writes any key/value into the session and persists it.
-func (s *fiberSessionStore) Set(ctx context.Context, key string, value interface{}) error {
-    c, ok := ctx.Value("fiberCtx").(*fiber.Ctx)
-    if !ok {
-        return fmt.Errorf("could not get fiber context")
-    }
-    sess, err := s.store.Get(c)
-    if err != nil {
-        return err
-    }
-    sess.Set(key, value)
-    return sess.Save()
+// SessionMiddleware is a Gin middleware to handle session management.
+func (s *SessionStore) SessionMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, isLoggedIn := s.GetSession(c)
+		if isLoggedIn {
+			// Make user ID available in context for subsequent handlers
+			c.Set("userID", userID)
+		}
+		c.Next()
+	}
 }
 
-// Delete removes a key from the session and persists the change.
-func (s *fiberSessionStore) Delete(ctx context.Context, key string) error {
-    c, ok := ctx.Value("fiberCtx").(*fiber.Ctx)
-    if !ok {
-        return fmt.Errorf("could not get fiber context")
-    }
-    sess, err := s.store.Get(c)
-    if err != nil {
-        return err
-    }
-    sess.Delete(key)
-    return sess.Save()
-}
