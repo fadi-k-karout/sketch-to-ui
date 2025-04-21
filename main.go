@@ -11,7 +11,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"sketch-to-ui-final-proj/auth"
-	"sketch-to-ui-final-proj/sketch"
+	
 )
 
 func main() {
