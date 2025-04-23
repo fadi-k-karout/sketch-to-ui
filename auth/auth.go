@@ -63,7 +63,7 @@ func signupHandler(c *gin.Context) {
 	user := User{
 		FirstName: form.FirstName,
 		Email:     form.Email,
-		Password:  form.Password
+		Password:  form.Password,
 	}
 
 	avatarURI, err := user.generateAvatar()
