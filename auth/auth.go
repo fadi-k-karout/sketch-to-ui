@@ -41,26 +41,29 @@ func loginFormHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "login", gin.H{})
 }
 
-type AuthForm struct {
+type SignupForm struct {
 	FirstName string `form:"first_name" binding:"required" validate:"required"`
+	Email     string `form:"email" binding:"required" validate:"required,email"`
+	Password  string `form:"password" binding:"required" validate:"required,min=8"`
+}
+
+type LoginForm struct {
 	Email    string `form:"email" binding:"required" validate:"required,email"`
 	Password string `form:"password" binding:"required" validate:"required,min=8"`
 }
 
 func signupHandler(c *gin.Context) {
-	var form AuthForm
+	var form SignupForm
 	if err := c.ShouldBind(&form); err != nil {
 		slog.Error("Signup error:", err)
 		c.String(http.StatusBadRequest, "Bad request")
 		return
 	}
 
-	
-
 	user := User{
 		FirstName: form.FirstName,
-		Email:    form.Email,
-		
+		Email:     form.Email,
+		Password:  form.Password
 	}
 
 	avatarURI, err := user.generateAvatar()
@@ -71,14 +74,14 @@ func signupHandler(c *gin.Context) {
 
 	user.AvatarURI = avatarURI
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Could not hash password")
 		return
 	}
 	user.Password = string(hashedPassword)
 
-	_, err = DB.Exec("INSERT INTO users (email, password, avatar_uri) VALUES ($1, $2, $3)", user.Email, user.Password, user.AvatarURI)
+	_, err = DB.Exec("INSERT INTO users (first_name, email, password, avatar_uri) VALUES ($1, $2, $3, $4)", user.FirstName, user.Email, user.Password, user.AvatarURI)
 	if err != nil {
 		log.Println("Signup error:", err)
 		c.String(http.StatusInternalServerError, "Signup failed")
@@ -89,9 +92,9 @@ func signupHandler(c *gin.Context) {
 }
 
 func loginHandler(c *gin.Context) {
-	var form AuthForm
+	var form LoginForm
 	if err := c.ShouldBind(&form); err != nil {
-		
+		slog.Error("Login error:", err)
 		c.String(http.StatusBadRequest, "Bad request")
 		return
 	}
@@ -101,8 +104,10 @@ func loginHandler(c *gin.Context) {
 		Password: form.Password,
 	}
 
+	slog.Info("User:", user)
+
 	var storedUser User
-	err := DB.QueryRow("SELECT id, email, password, avatar_uri FROM users WHERE email = $1", user.Email).Scan(&storedUser.ID, &storedUser.Email, &storedUser.Password, &storedUser.AvatarURI)
+	err := DB.QueryRow("SELECT id, first_name, email, password, avatar_uri FROM users WHERE email = $1", user.Email).Scan(&storedUser.ID, &storedUser.FirstName, &storedUser.Email, &storedUser.Password, &storedUser.AvatarURI)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.String(http.StatusUnauthorized, "Invalid credentials")
@@ -111,11 +116,13 @@ func loginHandler(c *gin.Context) {
 		}
 		return
 	}
+	slog.Info("Stored user:", storedUser)
 
 	err = bcrypt.CompareHashAndPassword([]byte(storedUser.Password), []byte(user.Password))
 	if err != nil {
+		slog.Error("Login error:", err)
 		c.String(http.StatusUnauthorized, "Invalid credentials")
-		return	
+		return
 	}
 
 	// **Set Session on successful login**
@@ -123,7 +130,7 @@ func loginHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "base", gin.H{
 		"userID":     storedUser.ID,
 		"avatarPath": storedUser.AvatarURI,
-	}) 
+	})
 }
 
 func logoutHandler(c *gin.Context) {
