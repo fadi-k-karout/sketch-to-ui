@@ -23,8 +23,7 @@ func NewSessionStore(cookieName string, sessionDuration time.Duration, secretKey
 		Secure:   isProduction, // Set to true in production with HTTPS
 		SameSite: http.SameSiteStrictMode,
 		Path:     "/",
-        MaxAge: int(sessionDuration.Seconds()),
-		
+		MaxAge:   int(sessionDuration.Seconds()),
 	}
 
 	return &SessionStore{
@@ -41,8 +40,7 @@ func (s *SessionStore) SetSession(c *gin.Context, userID int) {
 		// Handle error, maybe log it. For now, continue.
 	}
 
-	session.Values["userID"] = userID                           // Set user ID in session values
-
+	session.Values["userID"] = userID // Set user ID in session values
 
 	err = session.Save(c.Request, c.Writer) // Save session using gorilla/sessions
 	if err != nil {
@@ -86,9 +84,9 @@ func (s *SessionStore) ClearSession(c *gin.Context) {
 }
 
 // SessionMiddleware is a Gin middleware to handle session management.
-func (s *SessionStore) SessionMiddleware() gin.HandlerFunc {
+func SessionMiddleware(sessionStore *SessionStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, isLoggedIn := s.GetSession(c)
+		userID, isLoggedIn := sessionStore.GetSession(c)
 		if isLoggedIn {
 			// Make user ID available in context for subsequent handlers
 			c.Set("userID", userID)
@@ -96,4 +94,3 @@ func (s *SessionStore) SessionMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-

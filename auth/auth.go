@@ -20,7 +20,7 @@ func Init(router *gin.Engine, db *sql.DB, secretKey string) {
 	DB = db
 	isProduction := os.Getenv("IS_PRODUCTION") == "true"
 	sessionStore = NewSessionStore("session-name", 24*time.Hour, secretKey, isProduction)
-	router.Use(sessionStore.SessionMiddleware())
+	router.Use(SessionMiddleware(sessionStore))
 	setupRoutes(router)
 }
 
@@ -127,14 +127,25 @@ func loginHandler(c *gin.Context) {
 
 	// **Set Session on successful login**
 	sessionStore.SetSession(c, int(storedUser.ID))
-	c.HTML(http.StatusOK, "base", gin.H{
-		"userID":     storedUser.ID,
-		"avatarPath": storedUser.AvatarURI,
-	})
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Trigger", "navbarChanged")
+	
+		c.HTML(http.StatusOK, "welcome", gin.H{
+			"firstName":  storedUser.FirstName,
+			"userID":     storedUser.ID,
+			"avatarPath": storedUser.AvatarURI,
+		})
+		return
+	}
 }
 
 func logoutHandler(c *gin.Context) {
 	sessionStore.ClearSession(c)
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Redirect", "/")
+		c.Status(http.StatusSeeOther)
+		return
+	}
 	c.Redirect(http.StatusSeeOther, "/") // Redirect to home page or login page
 }
 

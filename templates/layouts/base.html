@@ -17,7 +17,7 @@
     ></script>
   </head>
   <body class="bg-base-100" hx-push-url="true">
-    <header>{{ template "navbar.html" . }}</header>
+    <header>{{ template "navbar" . }}</header>
     <div id="content" class="p-4">{{ block "content" . }}{{ end }}</div>
   </body>
 </html>

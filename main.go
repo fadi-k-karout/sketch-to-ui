@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -11,7 +12,6 @@ import (
 	_ "github.com/lib/pq"
 
 	"sketch-to-ui-final-proj/auth"
-	
 )
 
 func main() {
@@ -39,6 +39,8 @@ func main() {
 
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/**/*.html") // Load your templates
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
+	slog.SetDefault(slog.New(handler))
 
 	secretKey := os.Getenv("SESSION_SECRET_KEY") // Get secret key from env
 	if secretKey == "" {
@@ -47,10 +49,23 @@ func main() {
 
 	auth.Init(router, db, secretKey) // Initialize auth with the database
 
-
 	router.GET("/", func(c *gin.Context) {
+		userID := c.GetInt("userID") // Get user ID from context
+		slog.Debug("userID is: ", slog.Int("userID", userID))
 		c.HTML(http.StatusOK, "base", gin.H{
-			"title": "Home",
+			"title":  "Home",
+			"userID": c.GetInt("userID"),
+		})
+	})
+
+	router.GET("/navbar", func(c *gin.Context) {
+		userID, _ := c.Get("userID")
+		avatarPath := "" // fetch from DB if needed
+		c.Header("HX-Push-Url", "/")
+		c.HTML(http.StatusOK, "navbar", gin.H{
+			"userID":     userID,
+			"avatarPath": avatarPath,
+			// add other needed context
 		})
 	})
 
