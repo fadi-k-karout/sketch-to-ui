@@ -1,2 +1,5 @@
 .env
 avatars/
+.qodo
+tmp/
+.vscode/
