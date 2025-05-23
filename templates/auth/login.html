@@ -1,27 +1,89 @@
 {{ define "login" }}
-<div class="flex justify-center max-h-[80vh]">
-    <div class="card w-96 bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title">Login</h2>
-            <form hx-post="/login" hx-push-url="false" hx-target="#content" hx-swap="innerHTML">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Email</span>
-                    </label>
-                    <input class="input validator" name="email" type="email" required placeholder="mail@site.com" />
-                    <div class="validator-hint">Enter valid email address</div>
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Password</span>
-                    </label>
-                    <input type="password" name="password" placeholder="password" class="input input-bordered" required>
-                </div>
-                <div class="form-control mt-6">
-                    <button class="btn btn-wide btn-primary" type="submit">Login</button>
-                </div>
-            </form>
+<div
+  class="flex min-h-[calc(100svh-7rem)] w-full items-center justify-center p-6 md:p-10"
+>
+  <div class="card w-96 shadow-md">
+    <div class="card-body">
+      <div class="flex flex-col items-center mb-6">
+        <span
+          class="iconify text-4xl text-primary mb-2"
+          data-icon="mdi:login-variant"
+        ></span>
+        <h2 class="card-title text-2xl font-bold text-primary mb-1">
+          Welcome Back
+        </h2>
+        <p class="text-base-content text-sm opacity-60">
+          Sign in to your account to continue
+        </p>
+      </div>
+      <form
+        hx-post="/login"
+        hx-push-url="false"
+        hx-target="#content"
+        hx-swap="innerHTML"
+      >
+        <div class="form-control">
+          <label class="label pb-2" for="email">
+            <span class="label-text text-base-content font-semibold"
+              >Email</span
+            >
+          </label>
+          <input
+            id="email"
+            class="input validator w-full"
+            name="email"
+            type="email"
+            required
+            placeholder="mail@site.com"
+            autocomplete="email"
+          />
+          <div class="validator-hint pb-2">Enter valid email address</div>
         </div>
+        <div class="form-control">
+          <label class="label pb-2" for="password">
+            <span class="label-text text-base-content font-semibold"
+              >Password</span
+            >
+          </label>
+          <div class="relative" x-data="{ showPassword: false }">
+            <input
+              id="password"
+              :type="showPassword ? 'text' : 'password'"
+              name="password"
+              placeholder="password"
+              class="input input-bordered w-full"
+              autocomplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              class="absolute top-3 right-2 bottom-2 z-50 text-gray-500 hover:text-gray-700 cursor-pointer"
+              @click="showPassword = !showPassword"
+            >
+              <span
+                class="iconify text-xl"
+                :data-icon="showPassword ? 'fluent:eye-off-16-regular' : 'fluent:eye-12-regular'"
+              ></span>
+            </button>
+          </div>
+        </div>
+        <div class="form-control mt-6">
+          <button
+            class="w-full bg-primary text-white rounded-md px-4 py-2 font-medium shadow transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
+            type="submit"
+          >
+            Login
+          </button>
+        </div>
+
+        <div class="mt-4 text-center text-sm">
+          Don&apos;t have an account?
+          <a href="#" hx-get="/signup" class="underline underline-offset-4">
+            Sign up
+          </a>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {{ end }}
