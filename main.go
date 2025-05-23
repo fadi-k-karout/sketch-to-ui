@@ -59,12 +59,18 @@ func main() {
 	})
 
 	router.GET("/navbar", func(c *gin.Context) {
-		userID, _ := c.Get("userID")
-		avatarPath := "" // fetch from DB if needed
+		userID, userExists := c.Get("userID")
+		avatarURI, _ := c.Get("avatarURI")
+		if !userExists {
+			slog.Debug("userID not found in context")
+			c.HTML(http.StatusUnauthorized, "navbar", gin.H{})
+			return
+		}
+
 		c.Header("HX-Push-Url", "/")
 		c.HTML(http.StatusOK, "navbar", gin.H{
 			"userID":     userID,
-			"avatarPath": avatarPath,
+			"avatarPath": avatarURI,
 			// add other needed context
 		})
 	})

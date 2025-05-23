@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -34,38 +35,47 @@ func NewSessionStore(cookieName string, sessionDuration time.Duration, secretKey
 }
 
 // SetSession creates a new session and sets the session cookie using gorilla/sessions.
-func (s *SessionStore) SetSession(c *gin.Context, userID int) {
+func (s *SessionStore) SetSession(c *gin.Context, user *User) {
 	session, err := s.store.Get(c.Request, s.cookieName) // Get session from gorilla/sessions
 	if err != nil {
-		// Handle error, maybe log it. For now, continue.
+		slog.Error("Error getting session", "err", err)
+		return // Handle error, maybe create a new session
 	}
 
-	session.Values["userID"] = userID // Set user ID in session values
+	session.Values["userID"] = int(user.ID) // Set user ID in session values
+	session.Values["avatarURI"] = user.AvatarURI
 
 	err = session.Save(c.Request, c.Writer) // Save session using gorilla/sessions
 	if err != nil {
 		// Handle save error, maybe log it. For now, continue.
+		slog.Error("Error saving session", "err", err)
 	}
 }
 
 // GetSession retrieves the user ID from the session cookie using gorilla/sessions.
-func (s *SessionStore) GetSession(c *gin.Context) (int, bool) {
-	session, err := s.store.Get(c.Request, s.cookieName) // Get session from gorilla/sessions
+func (s *SessionStore) GetSession(c *gin.Context) (*User, bool) {
+	var user User
+	session, err := s.store.Get(c.Request, s.cookieName)
 	if err != nil {
-		return 0, false // No session or error
+		return nil, false
 	}
 
-	// Check if user ID exists and is of the correct type
 	userIDValue := session.Values["userID"]
 	if userIDValue == nil {
-		return 0, false // User ID not in session
+		return nil, false
 	}
-	userID, ok := userIDValue.(int) // Type assertion to int
+	userID, ok := userIDValue.(int)
 	if !ok {
-		return 0, false // Type assertion failed
+		return nil, false
+	}
+	user.ID = ID(userID)
+
+	// Restore AvatarURI
+	if avatar, ok := session.Values["avatarURI"].(string); ok {
+		user.AvatarURI = avatar
 	}
 
-	return userID, true
+	return &user, true
 }
 
 // ClearSession removes the session cookie and server-side session data using gorilla/sessions.
@@ -78,7 +88,8 @@ func (s *SessionStore) ClearSession(c *gin.Context) {
 	session.Options.MaxAge = -1             // Set MaxAge to -1 to delete the cookie
 	err = session.Save(c.Request, c.Writer) // Save session to delete cookie
 	if err != nil {
-		// Handle save error, maybe log it. For now, continue.
+		slog.Error("Error clearing session", "err", err)
+		return 
 	}
 	// gorilla/sessions handles server-side clearing of cookie-based sessions automatically
 }
@@ -86,10 +97,11 @@ func (s *SessionStore) ClearSession(c *gin.Context) {
 // SessionMiddleware is a Gin middleware to handle session management.
 func SessionMiddleware(sessionStore *SessionStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, isLoggedIn := sessionStore.GetSession(c)
+		user, isLoggedIn := sessionStore.GetSession(c)
 		if isLoggedIn {
-			// Make user ID available in context for subsequent handlers
-			c.Set("userID", userID)
+
+			c.Set("userID", user.ID)
+			c.Set("avatarURI", user.AvatarURI) // Set avatar URI in context
 		}
 		c.Next()
 	}

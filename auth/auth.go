@@ -55,7 +55,7 @@ type LoginForm struct {
 func signupHandler(c *gin.Context) {
 	var form SignupForm
 	if err := c.ShouldBind(&form); err != nil {
-		slog.Error("Signup error:", err)
+		slog.Error("Signup error", "err", err)
 		c.String(http.StatusBadRequest, "Bad request")
 		return
 	}
@@ -81,20 +81,34 @@ func signupHandler(c *gin.Context) {
 	}
 	user.Password = string(hashedPassword)
 
-	_, err = DB.Exec("INSERT INTO users (first_name, email, password, avatar_uri) VALUES ($1, $2, $3, $4)", user.FirstName, user.Email, user.Password, user.AvatarURI)
+	err = DB.QueryRow(
+		"INSERT INTO users (first_name, email, password, avatar_uri) VALUES ($1, $2, $3, $4) RETURNING id",
+		user.FirstName, user.Email, user.Password, user.AvatarURI,
+	).Scan(&user.ID)
 	if err != nil {
 		log.Println("Signup error:", err)
 		c.String(http.StatusInternalServerError, "Signup failed")
 		return
 	}
+	// **Set Session on successful login**
+	sessionStore.SetSession(c, &user)
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Trigger", "navbarChanged")
 
-	c.String(http.StatusOK, "Signup successful") // Redirect to login or home page later
+		c.HTML(http.StatusOK, "welcome", gin.H{
+			"firstName":  user.FirstName,
+			"userID":     user.ID,
+			"avatarPath": user.AvatarURI,
+		})
+		return
+	}
+
 }
 
 func loginHandler(c *gin.Context) {
 	var form LoginForm
 	if err := c.ShouldBind(&form); err != nil {
-		slog.Error("Login error:", err)
+		slog.Error("Login error", "err", err)
 		c.String(http.StatusBadRequest, "Bad request")
 		return
 	}
@@ -104,7 +118,7 @@ func loginHandler(c *gin.Context) {
 		Password: form.Password,
 	}
 
-	slog.Info("User:", user)
+	slog.Info("User attempting login", "user", user)
 
 	var storedUser User
 	err := DB.QueryRow("SELECT id, first_name, email, password, avatar_uri FROM users WHERE email = $1", user.Email).Scan(&storedUser.ID, &storedUser.FirstName, &storedUser.Email, &storedUser.Password, &storedUser.AvatarURI)
@@ -116,20 +130,20 @@ func loginHandler(c *gin.Context) {
 		}
 		return
 	}
-	slog.Info("Stored user:", storedUser)
+	slog.Info("Stored user found", "storedUser", storedUser)
 
 	err = bcrypt.CompareHashAndPassword([]byte(storedUser.Password), []byte(user.Password))
 	if err != nil {
-		slog.Error("Login error:", err)
+		slog.Error("Login error", "err", err)
 		c.String(http.StatusUnauthorized, "Invalid credentials")
 		return
 	}
 
 	// **Set Session on successful login**
-	sessionStore.SetSession(c, int(storedUser.ID))
+	sessionStore.SetSession(c, &storedUser)
 	if c.GetHeader("HX-Request") == "true" {
 		c.Header("HX-Trigger", "navbarChanged")
-	
+
 		c.HTML(http.StatusOK, "welcome", gin.H{
 			"firstName":  storedUser.FirstName,
 			"userID":     storedUser.ID,
