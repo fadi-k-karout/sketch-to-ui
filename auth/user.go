@@ -44,7 +44,7 @@ func (u *User) generateAvatar() (string, error) {
 	}
 
 	// Create the avatars directory if it doesn't exist
-	avatarsDir := "./avatars"
+	avatarsDir := "./static/images/avatars"
 	err = os.MkdirAll(avatarsDir, os.ModePerm)
 	if err != nil {
 		return "", err

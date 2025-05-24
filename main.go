@@ -39,6 +39,8 @@ func main() {
 
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/**/*.html") // Load your templates
+	router.Static("/static", "./static")
+
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 	slog.SetDefault(slog.New(handler))
 
