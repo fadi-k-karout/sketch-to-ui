@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"unicode/utf8"
-	"github.com/disintegration/letteravatar"
 
+	"github.com/disintegration/letteravatar"
 )
 
 type ID int
@@ -29,6 +29,7 @@ func ParseUserID(s string) (ID, error) {
 type User struct {
 	ID        ID     `db:"id"`
 	FirstName string `db:"first_name"`
+	LastName  string `db:"last_name"`
 	Email     string `db:"email"`
 	Password  string `db:"password"`
 	AvatarURI string `db:"avatar_uri"`
@@ -49,10 +50,8 @@ func (u *User) generateAvatar() (string, error) {
 		return "", err
 	}
 
-
-
 	// Save the image to the avatars directory
-	filename := fmt.Sprintf("%s-%s.png",  u.FirstName, u.ID.String())
+	filename := fmt.Sprintf("%s-%s.png", u.FirstName, u.ID.String())
 	filepath := filepath.Join(avatarsDir, filename)
 	file, err := os.Create(filepath)
 	if err != nil {

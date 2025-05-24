@@ -43,6 +43,7 @@ func loginFormHandler(c *gin.Context) {
 
 type SignupForm struct {
 	FirstName string `form:"first_name" binding:"required" validate:"required"`
+	LastName  string `form:"last_name" binding:"required" validate:"required"`
 	Email     string `form:"email" binding:"required" validate:"required,email"`
 	Password  string `form:"password" binding:"required" validate:"required,min=8"`
 }
@@ -62,6 +63,7 @@ func signupHandler(c *gin.Context) {
 
 	user := User{
 		FirstName: form.FirstName,
+		LastName:  form.LastName,
 		Email:     form.Email,
 		Password:  form.Password,
 	}
@@ -81,9 +83,10 @@ func signupHandler(c *gin.Context) {
 	}
 	user.Password = string(hashedPassword)
 
+	// In the INSERT statement:
 	err = DB.QueryRow(
-		"INSERT INTO users (first_name, email, password, avatar_uri) VALUES ($1, $2, $3, $4) RETURNING id",
-		user.FirstName, user.Email, user.Password, user.AvatarURI,
+		"INSERT INTO users (first_name, last_name, email, password, avatar_uri) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		user.FirstName, user.LastName, user.Email, user.Password, user.AvatarURI,
 	).Scan(&user.ID)
 	if err != nil {
 		log.Println("Signup error:", err)

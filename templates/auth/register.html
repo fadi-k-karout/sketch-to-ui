@@ -20,22 +20,41 @@
         hx-target="#content"
         hx-swap="innerHTML"
       >
-        <div class="form-control">
-          <label class="label pb-2" for="first_name">
-            <span class="label-text text-base-content font-semibold"
-              >First Name</span
-            >
-          </label>
-          <input
-            id="first_name"
-            class="input validator w-full"
-            type="text"
-            name="first_name"
-            required
-            placeholder="First Name"
-            autocomplete="given-name"
-          />
-          <div class="validator-hint pb-2">Enter your first name</div>
+        <div class="flex gap-4">
+          <div class="form-control flex-1">
+            <label class="label pb-2" for="first_name">
+              <span class="label-text text-base-content font-semibold"
+                >First Name</span
+              >
+            </label>
+            <input
+              id="first_name"
+              class="input validator w-full"
+              type="text"
+              name="first_name"
+              required
+              placeholder="First Name"
+              autocomplete="given-name"
+            />
+            <div class="validator-hint pb-2">Enter your first name</div>
+          </div>
+          <div class="form-control flex-1">
+            <label class="label pb-2" for="last_name">
+              <span class="label-text text-base-content font-semibold"
+                >Last Name</span
+              >
+            </label>
+            <input
+              id="last_name"
+              class="input validator w-full"
+              type="text"
+              name="last_name"
+              required
+              placeholder="Last Name"
+              autocomplete="family-name"
+            />
+            <div class="validator-hint pb-2">Enter your last name</div>
+          </div>
         </div>
 
         <div class="form-control">
