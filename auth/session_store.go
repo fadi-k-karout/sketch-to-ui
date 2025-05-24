@@ -89,7 +89,7 @@ func (s *SessionStore) ClearSession(c *gin.Context) {
 	err = session.Save(c.Request, c.Writer) // Save session to delete cookie
 	if err != nil {
 		slog.Error("Error clearing session", "err", err)
-		return 
+		return
 	}
 	// gorilla/sessions handles server-side clearing of cookie-based sessions automatically
 }
@@ -99,10 +99,10 @@ func SessionMiddleware(sessionStore *SessionStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, isLoggedIn := sessionStore.GetSession(c)
 		if isLoggedIn {
-
 			c.Set("userID", user.ID)
-			c.Set("avatarURI", user.AvatarURI) // Set avatar URI in context
+			c.Set("avatarURI", user.AvatarURI)
 		}
+		c.Set("isLoggedIn", isLoggedIn)
 		c.Next()
 	}
 }

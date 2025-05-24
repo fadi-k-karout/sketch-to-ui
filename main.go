@@ -52,11 +52,12 @@ func main() {
 	auth.Init(router, db, secretKey) // Initialize auth with the database
 
 	router.GET("/", func(c *gin.Context) {
-		userID := c.GetInt("userID") // Get user ID from context
-		slog.Debug("userID is: ", slog.Int("userID", userID))
+		isLoggedIn, _ := c.Get("isLoggedIn")
+
 		c.HTML(http.StatusOK, "base", gin.H{
-			"title":  "Home",
-			"userID": c.GetInt("userID"),
+			"title":      "Home",
+			
+			"isLoggedIn": isLoggedIn,
 		})
 	})
 

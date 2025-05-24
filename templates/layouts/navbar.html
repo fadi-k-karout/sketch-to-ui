@@ -4,7 +4,8 @@
     <a href="/" class="btn btn-ghost text-xl">Sketch to UI</a>
   </div>
   <div class="flex-none gap-2">
-    {{ if .userID }}
+    {{ if .isLoggedIn }}
+    <!-- logged-in user navbar -->
     <div class="dropdown dropdown-end">
       <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
         <div class="flex items-center space-x-6">
@@ -35,6 +36,7 @@
       </ul>
     </div>
     {{ else }}
+    <!-- guest navbar -->
     <ul class="menu menu-horizontal px-1">
       <li>
         <a hx-get="/login" hx-target="#content" class="btn btn-ghost">Login</a>
