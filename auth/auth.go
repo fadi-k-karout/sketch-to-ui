@@ -168,13 +168,12 @@ func logoutHandler(c *gin.Context) {
 
 func AuthRequiredMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, isLoggedIn := sessionStore.GetSession(c)
-		if !isLoggedIn {
-			c.Redirect(http.StatusSeeOther, "/login") // Redirect to login if not logged in
+		isLoggedIn, _ := c.Get("isLoggedIn")
+		if loggedIn, ok := isLoggedIn.(bool); !ok || !loggedIn {
+			c.Redirect(http.StatusSeeOther, "/login")
 			c.Abort()
 			return
 		}
-		c.Set("userID", userID) // Make user ID available in context
 		c.Next()
 	}
 }
