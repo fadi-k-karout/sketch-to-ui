@@ -1,0 +1,148 @@
+{{ define "upload" }}
+
+<form method="dialog">
+  <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+    >
+      <path
+        fill="currentColor"
+        d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6z"
+      />
+    </svg>
+  </button>
+</form>
+
+<h2 class="text-2xl font-bold mb-4 text-center">Upload Sketch</h2>
+<form x-data="uploadForm()" @submit.prevent="uploadFile">
+  <div
+    class="drop-zone border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-200 bg-base-300 hover:bg-base-100"
+    :class="{ 'border-primary ring-2 ring-primary/30': dragover }"
+    @dragover.prevent="dragover = true"
+    @dragleave.prevent="dragover = false"
+    @drop.prevent="handleDrop($event)"
+    tabindex="0"
+    aria-label="File Upload Drop Zone"
+  >
+    <input
+      type="file"
+      class="hidden"
+      @change="handleFileChange($event)"
+      x-ref="fileInput"
+      aria-label="Choose file"
+      name="sketch"
+    />
+    <div @click="$refs.fileInput.click()" class="flex flex-col items-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-14 w-14 text-primary mb-2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"
+        />
+      </svg>
+      <p class="text-gray-600 font-medium">
+        Drag & drop or
+        <span class="text-primary underline cursor-pointer">browse</span>
+      </p>
+      <template x-if="file">
+        <div class="mt-4 flex flex-col items-center">
+          <img
+            x-show="file"
+            :src="URL.createObjectURL(file)"
+            class="mt-2 mx-auto max-h-40 rounded shadow"
+            alt="Preview"
+          />
+          <span class="text-sm text-gray-700 mt-2" x-text="file.name"></span>
+          <span
+            class="text-xs text-gray-400"
+            x-text="(file.size/1024).toFixed(1) + ' KB'"
+          ></span>
+        </div>
+      </template>
+    </div>
+  </div>
+  <template x-if="uploading">
+    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+      <div
+        class="bg-primary h-2.5 rounded-full animate-pulse"
+        style="width: 80%"
+      ></div>
+    </div>
+  </template>
+  <div class="form-control mt-6">
+    <button
+      class="btn btn-primary w-full"
+      type="submit"
+      :disabled="!file || uploading"
+    >
+      <span x-show="!uploading">Upload</span>
+      <span x-show="uploading">Uploading...</span>
+    </button>
+  </div>
+  <!-- Display uploaded sketch IDs -->
+  <div class="mt-4" x-show="sketchIDs.length > 0">
+    <h3 class="font-semibold mb-2">Uploaded Sketch IDs:</h3>
+    <ul class="text-xs text-gray-600">
+      <template x-for="id in sketchIDs" :key="id">
+        <li x-text="id"></li>
+      </template>
+    </ul>
+  </div>
+</form>
+
+<script>
+  function uploadForm() {
+    return {
+      dragover: false,
+      file: null,
+      uploading: false,
+      sketchIDs: [],
+      handleDrop(event) {
+        const file = event.dataTransfer.files[0];
+        this.file = file;
+        this.$refs.fileInput.files = event.dataTransfer.files;
+        this.dragover = false;
+      },
+      handleFileChange(event) {
+        this.file = event.target.files[0];
+      },
+      async uploadFile() {
+        if (!this.file) return;
+        this.uploading = true;
+        const formData = new FormData();
+        formData.append("sketch", this.file);
+
+        try {
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin",
+          });
+          const data = await response.json();
+          if (response.ok && data.sketch_id) {
+            this.sketchIDs.push(data.sketch_id);
+            this.file = null;
+            this.$refs.fileInput.value = "";
+          } else {
+            alert(data.error || "Upload failed");
+          }
+        } catch (e) {
+          alert("Upload failed");
+        } finally {
+          this.uploading = false;
+        }
+      },
+    };
+  }
+</script>
+{{ end }}

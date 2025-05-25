@@ -12,6 +12,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"sketch-to-ui-final-proj/auth"
+	"sketch-to-ui-final-proj/sketch"
 )
 
 func main() {
@@ -50,6 +51,7 @@ func main() {
 	}
 
 	auth.Init(router, db, secretKey) // Initialize auth with the database
+	sketch.SetupSketch(router)
 
 	router.GET("/", func(c *gin.Context) {
 		isLoggedIn, _ := c.Get("isLoggedIn")
