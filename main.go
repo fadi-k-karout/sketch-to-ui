@@ -53,10 +53,11 @@ func main() {
 
 	router.GET("/", func(c *gin.Context) {
 		isLoggedIn, _ := c.Get("isLoggedIn")
+		avatarURI, _ := c.Get("avatarURI")
 
 		c.HTML(http.StatusOK, "base", gin.H{
 			"title":      "Home",
-			
+			"avatarPath": avatarURI,
 			"isLoggedIn": isLoggedIn,
 		})
 	})
