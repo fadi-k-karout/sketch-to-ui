@@ -3,6 +3,19 @@
   <div class="flex-1">
     <a href="/" class="btn btn-ghost text-xl">Sketch to UI</a>
   </div>
+  <label class="swap swap-rotate">
+    <!-- this hidden checkbox controls the state -->
+    <input type="checkbox" class="theme-controller" value="dark" />
+
+    <!-- sun icon -->
+    <span
+      class="swap-off iconify text-4xl"
+      data-icon="material-symbols:light-mode-outline-rounded"
+    ></span>
+
+    <!-- moon icon -->
+    <span class="swap-on iconify text-4xl" data-icon="tdesign:mode-dark"></span>
+  </label>
   <div class="flex-none gap-2">
     {{ if .isLoggedIn }}
     <div class="dropdown dropdown-end">
@@ -17,7 +30,9 @@
           </div>
         </div>
         <div class="text-sm">
-          <div class="font-semibold text-base-content">{{ .FirstName}} {{.LastName}}</div>
+          <div class="font-semibold text-base-content">
+            {{ .FirstName}} {{.LastName}}
+          </div>
           <div class="text-xs text-base-content/60">Product Designer</div>
         </div>
         <svg
@@ -39,6 +54,9 @@
         class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
       >
         <li>
+          <a hx-get="/sketchpad" hx-target="#content">Sketchpad</a>
+        </li>
+        <li>
           <a class="justify-between">
             Profile
             <span class="badge">New</span>
@@ -58,27 +76,9 @@
           >Signup</a
         >
       </li>
-      <li>
-        <a hx-get="/sketchpad" hx-target="#content" class="btn btn-ghost"
-          >Sketchpad</a
-        >
-      </li>
     </ul>
     {{ end }}
   </div>
-  <label class="swap swap-rotate">
-    <!-- this hidden checkbox controls the state -->
-    <input type="checkbox" class="theme-controller" value="dark" />
-
-    <!-- sun icon -->
-    <span
-      class="swap-off iconify text-4xl"
-      data-icon="material-symbols:light-mode-outline-rounded"
-    ></span>
-
-    <!-- moon icon -->
-    <span class="swap-on iconify text-4xl" data-icon="tdesign:mode-dark"></span>
-  </label>
 </nav>
 <script>
   document.body.addEventListener("htmx:afterOnLoad", function (evt) {
