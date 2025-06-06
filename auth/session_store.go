@@ -44,6 +44,8 @@ func (s *SessionStore) SetSession(c *gin.Context, user *User) {
 
 	session.Values["userID"] = int(user.ID) // Set user ID in session values
 	session.Values["avatarURI"] = user.AvatarURI
+	session.Values["firstName"] = user.FirstName
+	session.Values["lastName"] = user.LastName
 
 	err = session.Save(c.Request, c.Writer) // Save session using gorilla/sessions
 	if err != nil {
@@ -75,6 +77,14 @@ func (s *SessionStore) GetSession(c *gin.Context) (*User, bool) {
 		user.AvatarURI = avatar
 	}
 
+	// Restore FirstName and LastName
+	if firstName, ok := session.Values["firstName"].(string); ok {
+		user.FirstName = firstName
+	}
+	if lastName, ok := session.Values["lastName"].(string); ok {
+		user.LastName = lastName
+	}
+
 	return &user, true
 }
 
@@ -101,6 +111,7 @@ func SessionMiddleware(sessionStore *SessionStore) gin.HandlerFunc {
 		if isLoggedIn {
 			c.Set("userID", user.ID)
 			c.Set("avatarURI", user.AvatarURI)
+			c.Set("user", user)
 		}
 		c.Set("isLoggedIn", isLoggedIn)
 		c.Next()

@@ -56,23 +56,41 @@ func main() {
 	router.GET("/", func(c *gin.Context) {
 		isLoggedIn, _ := c.Get("isLoggedIn")
 		avatarURI, _ := c.Get("avatarURI")
+		user, _ := c.Get("user")
+
+		var firstName, lastName string
+		if authUser, ok := user.(*auth.User); ok && authUser != nil {
+			firstName = authUser.FirstName
+			lastName = authUser.LastName
+		}
+		slog.Info("Rendering home page", "isLoggedIn", isLoggedIn, "avatarURI", avatarURI, "firstName", firstName, "lastName", lastName)
 
 		c.HTML(http.StatusOK, "base", gin.H{
 			"title":      "Home",
 			"avatarPath": avatarURI,
 			"isLoggedIn": isLoggedIn,
+			"firstName":  firstName,
+			"lastName":   lastName,
 		})
 	})
 
 	router.GET("/navbar", func(c *gin.Context) {
 		isLoggedIn, _ := c.Get("isLoggedIn")
 		avatarURI, _ := c.Get("avatarURI")
+		user, _ := c.Get("user")
+
+		var firstName, lastName string
+		if authUser, ok := user.(*auth.User); ok && authUser != nil {
+			firstName = authUser.FirstName
+			lastName = authUser.LastName
+		}
 
 		c.Header("HX-Push-Url", "/")
 		c.HTML(http.StatusOK, "navbar", gin.H{
 			"isLoggedIn": isLoggedIn,
 			"avatarPath": avatarURI,
-			// add other needed context
+			"firstName":  firstName,
+			"lastName":   lastName,
 		})
 	})
 
