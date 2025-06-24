@@ -6,13 +6,16 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
+	"sketch-to-ui-final-proj/ai"
 	"sketch-to-ui-final-proj/auth"
 	"sketch-to-ui-final-proj/sketch"
+	uicomponents "sketch-to-ui-final-proj/ui-components"
 )
 
 func main() {
@@ -51,7 +54,17 @@ func main() {
 	}
 
 	auth.Init(router, db, secretKey) // Initialize auth with the database
-	sketch.SetupSketch(router)
+	sketchStore := sketch.SetupSketch(router)
+
+	apiKey := os.Getenv("OPENROUTER_API_KEY")
+	baseURL := os.Getenv("OPENROUTER_BASE_URL")
+	client := &http.Client{
+		Timeout: 30 * time.Second, // Set a timeout of 30 seconds
+
+	}
+
+	aiProvider := ai.NewOpenRouterProvider(apiKey, baseURL, client)
+	uicomponents.SetupComponents(router, db, sketchStore, aiProvider)
 
 	router.GET("/", func(c *gin.Context) {
 		isLoggedIn, _ := c.Get("isLoggedIn")

@@ -12,11 +12,12 @@ type Sketch struct {
 	OwnerID  string `json:"owner_id"`
 }
 
-func SetupSketch(r *gin.Engine) {
+func SetupSketch(r *gin.Engine) *SketchStore {
 	slog.Info("Setting up sketch")
 
 	sketchStore := NewSketchStore()
 
 	RegisterRoutes(r, sketchStore)
+	return sketchStore
 
 }
