@@ -1,0 +1,121 @@
+<div class="modal-box" x-data="uploadForm()">
+    <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+
+    <h2 class="text-2xl font-bold mb-4 text-center">Upload Sketch</h2>
+    
+    <div class="drop-zone border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-200 bg-base-300 hover:bg-base-100"
+         :class="{ 'border-primary ring-2 ring-primary/30': dragover }"
+         @dragover.prevent="dragover = true"
+         @dragleave.prevent="dragover = false"
+         @drop.prevent="handleDrop($event)"
+         @click="$refs.fileInput.click()"
+         tabindex="0"
+         aria-label="File Upload Drop Zone">
+        
+        <input type="file" class="hidden" @change="handleFileChange($event)" x-ref="fileInput" name="sketch" accept=".jpg,.jpeg,.png,.webp">
+        
+        <template x-if="file">
+            <div class="flex flex-col items-center">
+                <img :src="previewUrl" class="mt-2 mx-auto max-h-40 rounded shadow" alt="Preview">
+                <span class="text-sm text-base-content mt-2" x-text="file.name"></span>
+                <span class="text-xs text-base-content/60" x-text="(file.size/1024).toFixed(1) + ' KB'"></span>
+            </div>
+        </template>
+        
+        <template x-if="!file">
+            <div class="flex flex-col items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-primary mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
+                </svg>
+                <p class="font-medium">Drag & drop or <span class="text-primary underline">browse</span></p>
+            </div>
+        </template>
+    </div>
+    
+    <div x-show="error" x-text="error" class="text-error text-sm text-center mt-2"></div>
+
+    <div class="form-control mt-6">
+        <button class="btn btn-primary w-full" @click="uploadFile" :disabled="!file || uploading">
+            <span x-show="uploading" class="loading loading-spinner"></span>
+            <span x-show="!uploading">Confirm and Upload Sketch</span>
+        </button>
+    </div>
+</div>
+
+<script>
+
+    Alpine.data('uploadForm', () => ({
+        dragover: false,
+        file: null,
+        uploading: false,
+        error: '',
+        previewUrl: '',
+        
+        validateFile(file) {
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                this.error = 'Invalid file type. Please upload JPG, PNG, or WebP.';
+                return false;
+            }
+            this.error = '';
+            return true;
+        },
+
+        handleFileChange(event) {
+            const file = event.target.files[0];
+            if (file && this.validateFile(file)) {
+                this.file = file;
+                this.previewUrl = URL.createObjectURL(file);
+            }
+        },
+
+        handleDrop(event) {
+            this.dragover = false;
+            const file = event.dataTransfer.files[0];
+            if (file && this.validateFile(file)) {
+                this.file = file;
+                this.$refs.fileInput.files = event.dataTransfer.files;
+                this.previewUrl = URL.createObjectURL(file);
+            }
+        },
+
+        async uploadFile() {
+            if (!this.file || this.error) return;
+            this.uploading = true;
+            
+            const formData = new FormData();
+            formData.append("sketch", this.file);
+
+            try {
+                const response = await fetch("/upload", { method: "POST", body: formData });
+                const data = await response.json();
+
+                if (response.ok && data.sketch_id) {
+                    // Update the main form on the page
+                    document.getElementById('sketch_id_input').value = data.sketch_id;
+                    const previewImg = document.getElementById('sketch-preview');
+                    previewImg.src = '/uploads/' + data.sketch_id;
+                    previewImg.classList.remove('hidden');
+
+                    // Update the UI
+                    document.getElementById('upload-prompt').classList.add('hidden');
+                    document.getElementById('create-component-btn').disabled = false;
+                    document.getElementById('create-helper-text').textContent = 'Sketch uploaded! You can now create the component.';
+
+                    // Close the modal
+                    upload_modal.close();
+                    this.file = null; // Reset for next time
+                } else {
+                    this.error = data.error || "Upload failed. Please try again.";
+                }
+            } catch (e) {
+                this.error = "An unexpected error occurred during upload.";
+            } finally {
+                this.uploading = false;
+            }
+        },
+    }));
+
+</script>
