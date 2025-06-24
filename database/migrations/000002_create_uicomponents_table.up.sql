@@ -1,0 +1,11 @@
+CREATE TABLE uicomponents (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    code TEXT NOT NULL,
+    is_public bool DEFAULT false,
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    archived_at TIMESTAMP DEFAULT NULL
+);

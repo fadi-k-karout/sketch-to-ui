@@ -1,0 +1,1 @@
+ALTER TABLE uicomponents DROP CONSTRAINT fk_uicomponents_user_id;
