@@ -190,8 +190,8 @@ func GetUserIDFromContext(c *gin.Context) (int, bool) {
 	if !exists {
 		return 0, false
 	}
-	if id, ok := userID.(int); ok {
-		return id, true
+	if id, ok := userID.(ID); ok {
+		return int(id), true
 	}
 	return 0, false // Type assertion failed
 }
