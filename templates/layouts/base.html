@@ -1,6 +1,6 @@
 {{ define "base" }}
 <!DOCTYPE html>
-<html>
+<html lang="en" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :data-theme="darkMode ? 'night' : 'light'" x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))">
   <head>
     <title>{{ .title }}</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -16,10 +16,24 @@
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
     <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
+   
+    <script src="https://cdn.jsdelivr.net/npm/split.js/dist/split.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+
+    <style>
+      [x-cloak] { display: none !important; }
+    </style>
+
+     <style type="text/tailwindcss">
+      @custom-variant dark (&:where([data-theme=night], [data-theme=night] *));
+    </style>
+
   </head>
   <body class="bg-base-100" hx-push-url="true">
     <header>{{ template "navbar" . }}</header>
     <div id="content" class="p-4">{{ block "content" . }}{{ end }}</div>
+
+    {{template "confirmation.html"}}
   </body>
 </html>
 {{ end }}
