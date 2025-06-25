@@ -1,0 +1,55 @@
+<dialog id="custom-confirm-modal" class="modal">
+  <div class="modal-box">
+    <h3 id="custom-confirm-title" class="font-bold text-lg">Confirm Action</h3>
+    <p id="custom-confirm-text" class="py-4">Are you sure you want to proceed?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button id="custom-confirm-cancel" class="btn">Cancel</button>
+        <button type="button" id="custom-confirm-button" class="btn btn-primary">Confirm</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  var issueRequestCallback = null;
+
+  document.body.addEventListener('htmx:confirm', function (evt) {
+    
+    const triggerElement = evt.detail.elt;
+
+    // THIS IS THE CRUCIAL FIX:
+    // Only proceed if the triggering element has the hx-confirm attribute.
+    if (triggerElement.hasAttribute('data-confirm')) {
+      
+      // Stop the default browser confirm dialog
+      evt.preventDefault();
+
+      // Store the special function that will issue the request
+      issueRequestCallback = evt.detail.issueRequest;
+
+      // Get custom text from our attributes
+      const message = triggerElement.getAttribute('data-confirm') || 'Are you sure?';
+      const title = triggerElement.getAttribute('data-confirm-title') || 'Confirm Action';
+
+      // Update and show the modal
+      document.getElementById('custom-confirm-title').textContent = title;
+      document.getElementById('custom-confirm-text').textContent = message;
+      document.getElementById('custom-confirm-modal').showModal();
+    }
+    // If the element does not have hx-confirm, this function does nothing,
+    // and the HTMX request proceeds normally without any confirmation.
+  });
+
+  document.getElementById('custom-confirm-button').addEventListener('click', () => {
+    if (issueRequestCallback) {
+      issueRequestCallback();
+      document.getElementById('custom-confirm-modal').close();
+      issueRequestCallback = null;
+    }
+  });
+
+  document.getElementById('custom-confirm-modal').addEventListener('close', () => {
+    issueRequestCallback = null;
+  });
+</script>
