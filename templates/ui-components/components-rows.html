@@ -1,0 +1,27 @@
+{{ range .Components }}
+    {{ template "_component-view.html" . }}
+{{ end }}
+
+{{ if gt .Remaining 0 }}
+<div class="text-center p-4"
+     hx-get="/components?offset={{.NextOffset}}&limit={{.Limit}}"
+     hx-trigger="revealed"
+     hx-push-url="false"
+     hx-swap="outerHTML">
+    <span class="loading loading-spinner loading-xl text-primary"></span>
+</div>
+{{ else }}
+<div class="flex flex-col items-center my-8 text-base-content/60">
+  <span class="text-lg font-medium mb-2">No more components to show</span>
+  <button
+    type="button"
+    class="btn btn-primary btn-sm"
+    hx-get="/components/create"
+    hx-target="#content"
+    hx-swap="innerHTML"
+    hx-push-url="true"
+  >
+    + New Component
+  </button>
+</div>
+{{ end }}

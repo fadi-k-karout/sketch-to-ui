@@ -1,0 +1,75 @@
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+  title="light"
+  disabled
+/>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+  title="dark"
+/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+  .card .hljs {
+    background: transparent !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+  }
+</style>
+<header
+  class="bg-base-100/70 p-4 my-4 rounded-lg  flex items-center justify-between"
+>
+  <div class="text-center sm:text-left">
+    <h1 class="text-3xl font-bold text-base-content">Component Dashboard</h1>
+    <p class="text-base-content/70 mt-1">
+      Scroll down to dynamically load more components.
+    </p>
+  </div>
+  <button
+
+    type="button"
+    class="btn btn-primary btn-sm"
+    hx-get="/components/create"
+    hx-target="#content"
+    hx-swap="innerHTML"
+    hx-push-url="true"
+  >
+    + New Component
+  </button>
+</header>
+
+<div
+  id="components-container overflow-y-auto snap-y snap-mandatory"
+  class="flex flex-col gap-8 p-4"
+  hx-get="/components?offset=0&limit=3"
+  hx-trigger="load"
+  hx-push-url="false"
+  hx-swap="innerHTML"
+  x-init="$watch('darkMode', val => updateHighlightJsTheme(val)); updateHighlightJsTheme(darkMode)"
+>
+  <div class="text-center p-8">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+  </div>
+</div>
+
+<script>
+  // This can be in your main JS file
+  function updateHighlightJsTheme(isDarkMode) {
+    const lightTheme = document.querySelector('link[title="light"]');
+    const darkTheme = document.querySelector('link[title="dark"]');
+
+    if (!lightTheme || !darkTheme) {
+      console.warn("Highlight.js theme stylesheets not found.");
+      return;
+    }
+
+    if (isDarkMode) {
+      lightTheme.disabled = true;
+      darkTheme.disabled = false;
+    } else {
+      lightTheme.disabled = false;
+      darkTheme.disabled = true;
+    }
+  }
+</script>

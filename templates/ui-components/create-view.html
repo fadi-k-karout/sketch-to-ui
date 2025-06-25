@@ -1,0 +1,100 @@
+<div class="max-w-4xl mx-auto">
+  <form
+    id="create-form"
+    hx-post="/components"
+    hx-encoding="multipart/form-data"
+    hx-target="#content"
+  >
+    <button
+      type="button"
+      onclick="history.back()"
+      class="btn btn-ghost btn-sm flex items-center mb-4"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5 mr-2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 19l-7-7 7-7"
+        />
+      </svg>
+      Back
+    </button>
+
+    <h1 class="text-3xl font-bold mb-2">Create New Component</h1>
+    <p class="mb-6 text-base-content/70">
+      Start by uploading a sketch of your desired component. The AI will
+      generate the code based on your image.
+    </p>
+
+    <div class="mb-6">
+      <label class="label">
+        <span class="label-text font-semibold text-lg"
+          >1. Upload Sketch Image</span
+        >
+      </label>
+      <div id="sketch-display-area" class="p-4 bg-base-100 rounded-lg">
+        <img
+          id="sketch-preview"
+          class="hidden max-h-72 rounded-lg shadow-lg mx-auto"
+          alt="Uploaded sketch preview"
+        />
+
+        <div id="upload-prompt" class="text-center">
+          <button
+            type="button"
+            onclick="upload_modal.showModal()"
+            class="btn btn-primary btn-outline"
+          >
+            Upload Sketch (JPG, PNG, WebP)
+          </button>
+        </div>
+      </div>
+      <input type="hidden" name="sketch_id" id="sketch_id_input" />
+    </div>
+
+    <div class="mb-6">
+      <label class="label">
+        <span class="label-text font-semibold text-lg"
+          >2. Add Title (Optional)</span
+        >
+        <span class="label-text-alt">Leave blank for AI to generate</span>
+      </label>
+      <div class="flex flex-col gap-4 p-4 bg-base-100 rounded-lg">
+        <input
+          type="text"
+          name="title"
+          placeholder="Component Title"
+          class="input input-bordered w-full"
+        />
+     </div>
+    </div>
+
+    <div class="mt-8">
+      <button
+        id="create-component-btn"
+        type="submit"
+        class="btn btn-primary btn-block"
+        disabled
+      >
+        Create Component
+      </button>
+      <p
+        id="create-helper-text"
+        class="text-xs text-center mt-2 text-base-content/50"
+      >
+        Please upload a sketch to enable creation.
+      </p>
+    </div>
+  </form>
+</div>
+
+<dialog id="upload_modal" class="modal">
+  {{ template "upload_form.html" . }}
+</dialog>
