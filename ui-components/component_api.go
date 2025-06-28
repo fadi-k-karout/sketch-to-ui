@@ -35,7 +35,6 @@ type CreateComponentRequest struct {
 	SketchID    string `form:"sketch_id" binding:"required"`
 	UserPrompt  string `form:"user_prompt" binding:"omitempty"`
 	Title       string `form:"title" binding:"max=20,omitempty"`
-	Description string `form:"description" binding:="omitempty"`
 	IsPublic    bool
 }
 
