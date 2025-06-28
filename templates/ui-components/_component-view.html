@@ -34,7 +34,7 @@
           data-tip="Edit Component"
           hx-get="/components/{{ .ID }}/edit"
           hx-target="#content"
-          hx-swap="innerHTML show:window:top"
+          hx-swap="innerHTML show:window:top transition:true" 
           hx-push-url="true"
         >
           <span

@@ -340,4 +340,48 @@ func (h *UIComponentHandler) RegisterRoutes(router *gin.Engine) {
 
 	componentGroup.GET("/create", h.RenderComponentsCreate)
 	componentGroup.GET("/:id/edit", h.RenderComponentsEdit)
+	componentGroup.POST("/update-code", h.UpdateComponentCode)
+}
+
+
+// UpdateCodeRequest represents the request payload for updating component code
+type UpdateCodeRequest struct {
+	Code       string `json:"code" binding:"required"`
+	UserPrompt string `json:"user_prompt" binding:"required"`
+}
+
+// UpdateComponentCode handles POST requests to update the code of a UI component using AI
+func (h *UIComponentHandler) UpdateComponentCode(c *gin.Context) {
+	var req UpdateCodeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload", "details": err.Error()})
+		return
+	}
+
+	
+
+	// Get user ID from context
+	_, exists := auth.GetUserIDFromContext(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized access"})
+		return
+	}
+
+	// Embed the code with the user prompt
+	prompt := req.UserPrompt + "\n\nHere is the code to update:\n\n" + req.Code
+
+	// Generate UI code using the AI package
+	codeUpdateResp, err := ai.UpdateCode(c.Request.Context(), prompt, h.aiProvider)
+	if err != nil {
+		slog.Error("Failed to update code with AI", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update code"})
+		return
+	}
+
+	if codeUpdateResp.FailureResponse != "" {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": codeUpdateResp.FailureResponse})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": codeUpdateResp.Component.Code})
 }

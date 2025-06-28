@@ -43,7 +43,7 @@
         <button
           type="button"
           class="btn btn-ghost btn-sm"
-          onclick="history.back()"
+          onclick="navigateBackWithTransition()"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -153,6 +153,22 @@
   var editorInstance = null;
   var editorModel = null;
   var splitInstance = null;
+
+
+    // Function to handle back navigation with View Transitions
+  function navigateBackWithTransition() {
+    // Check if View Transitions API is supported
+    if (document.startViewTransition) {
+      
+      // Start the view transition
+      document.startViewTransition(() => {
+        history.back();
+      });
+    } else {
+      // Fallback for browsers that don't support View Transitions
+      history.back();
+    }
+  }
 
   function initializeMonacoAndSplitJS() {
     const writableEditorDiv = document.getElementById("writable-editor");
@@ -304,9 +320,31 @@
   }
 
   async function callBackendAPI(prompt, code) {
-    console.log("Calling backend with:", { prompt, code });
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("Mock response received.");
-    return `<!-- AI edit based on: '${prompt}' -->\n` + code;
+    const url = `/components/update-code`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          user_prompt: prompt, 
+          code: code 
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Backend API call failed');
+      }
+
+      const data = await response.json();
+      return data.code; // Assuming the backend returns { "code": "..." }
+
+    } catch (error) {
+      console.error('Error calling backend API:', error);
+      throw error; // Re-throw to be caught by handleAIGeneration
+    }
   }
 </script>
