@@ -37,7 +37,7 @@ func TestGenerateUICode(t *testing.T) {
 
 	openrouter := NewOpenRouterProvider(apiKey, baseURL, client)
 
-	// Load a sample image (replace with a real image path if needed)
+	// Load a sample image 
 	imagePath := "test_data/test_image1.png" // Ensure this file exists
 	imgBytes, err := os.ReadFile(imagePath)
 	require.NoError(t, err, "Failed to read test image")
@@ -57,4 +57,43 @@ func TestGenerateUICode(t *testing.T) {
 	// Log the response for manual inspection
 	slog.Info("Generated UI Code:", "code", uiCode)
 
+}
+
+// TestUpdateCode tests the UpdateCode function by loading environment variables,
+// creating an OpenRouter provider, and verifying that code update works correctly.
+func TestUpdateCode(t *testing.T) {
+	err := godotenv.Load("../.env")
+	require.NoError(t, err, "Failed to load .env file")
+	apiKey := os.Getenv("OPENROUTER_API_KEY")
+	baseURL := os.Getenv("OPENROUTER_BASE_URL")
+
+	if apiKey == "" || baseURL == "" {
+		t.Skip("OPENROUTER_API_KEY not set, skipping integration test")
+	}
+	
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	openrouter := NewOpenRouterProvider(apiKey, baseURL, client)
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+
+	// Sample existing component to update
+	oldComponent := `{
+		"title": "Simple Button",
+		"type": "button",
+		"code": "<button class=\"px-4 py-2 bg-gray-500 text-white\">Click Me</button>"
+	}`
+	
+	userPrompt := "Update the following button component to have a blue background and rounded corners. Here is the current component: " + oldComponent + ". Return the updated code in JSON format."
+	codeUpdateResp, err := UpdateCode(ctx, userPrompt, openrouter)
+
+	assert.NoError(t, err, "UpdateCode should not return an error")
+	assert.NotEmpty(t, codeUpdateResp, "UpdateCode should return a non-empty response")
+
+	// Log the response for manual inspection
+	slog.Info("Code Update Response:", "response", codeUpdateResp)
 }

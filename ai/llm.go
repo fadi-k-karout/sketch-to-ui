@@ -37,7 +37,7 @@ func GenerateUICode(ctx context.Context, userPrompt string, imageBase64URI strin
 			},
 		}},
 		}}
-	modelID := "opengvlab/internvl3-14b:free"
+	modelID := "google/gemini-2.0-flash-exp:free"
 	response, err := op.RequestChatCompletion(ctx, messages, modelID)
 	if err != nil {
 		return UIGenerationResponse{}, fmt.Errorf("failed to generate response from OpenRouter: %w", err)
@@ -51,9 +51,42 @@ func GenerateUICode(ctx context.Context, userPrompt string, imageBase64URI strin
 		slog.Debug("Failed to parse UI Generation Response", "error", err, "response", cleanResponse)
 		return UIGenerationResponse{}, fmt.Errorf("failed to parse response JSON: %w", err)
 	}
-	
 
 	return uiGenResp, nil
+}
+
+//go:embed prompts/update_code_system_prompt.txt
+var updateCodeSystemPrompt string
+
+// CodeUpdateResponse represents the response for a code update request.
+type CodeUpdateResponse struct {
+	Component       UIComponentDTO `json:"component"`
+	FailureResponse string         `json:"failure_response,omitempty"`
+}
+
+// UpdateCode updates UI code based on a user prompt using OpenRouter's LLM.
+func UpdateCode(ctx context.Context, userPrompt string, op *OpenRouterProvider) (CodeUpdateResponse, error) {
+	messages := []map[string]any{
+		{"role": "system", "content": updateCodeSystemPrompt},
+		{"role": "user", "content": userPrompt},
+	}
+
+	modelID := "google/gemini-2.0-flash-exp:free"
+	response, err := op.RequestChatCompletion(ctx, messages, modelID)
+	if err != nil {
+		return CodeUpdateResponse{}, fmt.Errorf("failed to generate response from OpenRouter: %w", err)
+	}
+
+	cleanResponse := cleanLLMResponse(response)
+
+	var codeUpdateResp CodeUpdateResponse
+	err = json.Unmarshal([]byte(cleanResponse), &codeUpdateResp)
+	if err != nil {
+		slog.Debug("Failed to parse Code Update Response", "error", err, "response", cleanResponse)
+		return CodeUpdateResponse{}, fmt.Errorf("failed to parse response JSON: %w", err)
+	}
+
+	return codeUpdateResp, nil
 }
 
 // cleanLLMResponse sanitizes and formats raw LLM response text by removing
