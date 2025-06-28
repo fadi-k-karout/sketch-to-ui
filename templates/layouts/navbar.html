@@ -5,7 +5,15 @@
   </div>
   <label class="swap swap-rotate">
     <!-- this hidden checkbox controls the state -->
-    <input type="checkbox" x-model="darkMode" class="theme-controller" value="dark" />
+    <input type="checkbox" x-model="darkMode" x-init="$el.checked = darkMode" class="theme-controller" value="dark" />
+        <script>
+      // Set checkbox state immediately, before Alpine.js initializes
+      (function() {
+        const checkbox = document.currentScript.previousElementSibling;
+        const darkMode = localStorage.getItem('darkMode') === 'true';
+        checkbox.checked = darkMode;
+      })();
+    </script>
 
     <!-- sun icon -->
     <span
@@ -54,12 +62,11 @@
         class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
       >
         <li>
-          <a hx-get="/sketchpad" hx-target="#content">Sketchpad</a>
+          <a hx-get="/sketchpad" hx-target="#content" hx-swap="innerHTML transition:true">Sketchpad</a>
         </li>
         <li>
-          <a hx-get="/components/dashboard" hx-target="#content" hx-swap="innerHTML" class="justify-between">
-            Profile
-            <span class="badge">New</span>
+          <a hx-get="/components/dashboard" hx-target="#content" hx-swap="innerHTML transition:true" >
+          Dashboard 
           </a>
         </li>
         <li><a>Settings</a></li>
@@ -69,10 +76,10 @@
     {{ else }}
     <ul class="menu menu-horizontal px-1">
       <li>
-        <a hx-get="/login" hx-target="#content" class="btn btn-ghost">Login</a>
+        <a hx-get="/login" hx-target="#content" hx-swap="innerHTML transition:true" class="btn btn-ghost">Login</a>
       </li>
       <li>
-        <a hx-get="/signup" hx-target="#content" class="btn btn-ghost"
+        <a hx-get="/signup" hx-target="#content"  hx-swap="innerHTML transition:true" class="btn btn-ghost"
           >Signup</a
         >
       </li>
@@ -90,5 +97,8 @@
       });
     }
   });
+
+
+   
 </script>
 {{end}}

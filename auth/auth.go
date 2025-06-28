@@ -2,6 +2,7 @@ package auth
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"log/slog"
 	"net/http"
@@ -93,16 +94,24 @@ func signupHandler(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Signup failed")
 		return
 	}
+
+	location := map[string]interface{}{
+		"path":   "/components/dashboard",
+		"target": "#content",
+		"swap":   "innerHTML transition:true",
+	}
+	locationJSON, err := json.Marshal(location)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal HX-Location"})
+		return
+	}
+
 	// **Set Session on successful login**
 	sessionStore.SetSession(c, &user)
 	if c.GetHeader("HX-Request") == "true" {
 		c.Header("HX-Trigger", "navbarChanged")
-
-		c.HTML(http.StatusOK, "welcome", gin.H{
-			"firstName":  user.FirstName,
-			"userID":     user.ID,
-			"avatarPath": user.AvatarURI,
-		})
+		c.Header("HX-Location", string(locationJSON))
+		c.Status(http.StatusOK)
 		return
 	}
 
@@ -142,16 +151,23 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
+	location := map[string]interface{}{
+		"path":   "/components/dashboard",
+		"target": "#content",
+		"swap":   "innerHTML transition:true",
+	}
+	locationJSON, err := json.Marshal(location)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal HX-Location"})
+		return
+	}
+
 	// **Set Session on successful login**
 	sessionStore.SetSession(c, &storedUser)
 	if c.GetHeader("HX-Request") == "true" {
 		c.Header("HX-Trigger", "navbarChanged")
-
-		c.HTML(http.StatusOK, "welcome", gin.H{
-			"firstName":  storedUser.FirstName,
-			"userID":     storedUser.ID,
-			"avatarPath": storedUser.AvatarURI,
-		})
+		c.Header("HX-Location", string(locationJSON))
+		c.Status(http.StatusOK)
 		return
 	}
 }
