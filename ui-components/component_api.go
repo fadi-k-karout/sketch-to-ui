@@ -9,6 +9,7 @@ import (
 	"sketch-to-ui-final-proj/ai"
 	"sketch-to-ui-final-proj/auth"
 	"sketch-to-ui-final-proj/sketch"
+	"sketch-to-ui-final-proj/utils/htmx"
 
 	"github.com/gin-gonic/gin"
 )
@@ -135,6 +136,7 @@ func (h *UIComponentHandler) CreateComponent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal HX-Location"})
 		return
 	}
+	htmx.TriggerToast(c, htmx.InfoLevel, "The Component Was Created Successfully")
 	c.Header("HX-Location", string(locationJSON))
 	c.Status(http.StatusOK)
 
@@ -203,6 +205,7 @@ func (h *UIComponentHandler) UpdateComponent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal HX-Location"})
 		return
 	}
+	htmx.TriggerToast(c, htmx.InfoLevel, "The Component Was Updated Successfully")
 
 	c.Header("HX-Location", string(locationJSON))
 	c.Status(http.StatusOK)
@@ -244,6 +247,7 @@ func (h *UIComponentHandler) ArchiveComponent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to archive component"})
 		return
 	}
+	htmx.TriggerToast(c, htmx.InfoLevel, "The Component Was Deleted Successfully")
 
 	c.Status(http.StatusOK)
 }
