@@ -194,6 +194,34 @@ func AuthRequiredMiddleware() gin.HandlerFunc {
 	}
 }
 
+// RequireRole is a Gin middleware that checks if the logged-in user has the required role.
+func RequireRole(requiredRole Role) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// First, check if user info exists in the context (set by SessionMiddleware)
+		userRaw, exists := c.Get("user")
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Forbidden: user not authenticated"})
+			return
+		}
+
+		// Type assert the user object to your User type
+		user, ok := userRaw.(User) // Replace `User` with your actual user struct type
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal error: invalid user type"})
+			return
+		}
+
+		// Check the user's role
+		if user.Role != requiredRole {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Forbidden: insufficient permissions"})
+			return
+		}
+
+		// User has the required role; proceed to the next handler
+		c.Next()
+	}
+}
+
 // profileHandler is an example protected handler.
 func profileHandler(c *gin.Context) {
 	userID, _ := GetUserIDFromContext(c) // User ID is guaranteed to exist due to middleware

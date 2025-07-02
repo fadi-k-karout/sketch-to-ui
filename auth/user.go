@@ -14,6 +14,14 @@ import (
 
 type ID int
 
+type Role string
+
+const (
+	Regular Role = "member"
+
+	Admin Role = "admin"
+)
+
 func (id ID) String() string {
 	return strconv.Itoa(int(id))
 }
@@ -33,6 +41,7 @@ type User struct {
 	Email     string `db:"email"`
 	Password  string `db:"password"`
 	AvatarURI string `db:"avatar_uri"`
+	Role      Role  `db:"user_role"`
 }
 
 func (u *User) generateAvatar() (string, error) {
