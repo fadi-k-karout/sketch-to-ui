@@ -2,28 +2,98 @@
 <!DOCTYPE html>
 <html
   lang="en"
+  data-theme=""
   x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }"
   :data-theme="darkMode ? 'night' : 'light'"
   x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))"
 >
   <head>
-    <title>{{ .title }}</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link
-      href="https://cdn.jsdelivr.net/npm/daisyui@5"
-      rel="stylesheet"
-      type="text/css"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
-    ></script>
-    <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      document.documentElement.setAttribute(
+        "data-theme",
+        localStorage.getItem("darkMode") === "true" ? "night" : "light"
+      );
+    </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/split.js/dist/split.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    />
+
+    <title>{{ .title }}</title>
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        overflow-x: hidden; /* Prevent horizontal scroll caused by animations */
+      }
+      /* Custom scrollbar for a cleaner look */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        @apply bg-base-200; /* DaisyUI theme compatible */
+      }
+      ::-webkit-scrollbar-thumb {
+        @apply bg-base-content/30 rounded-lg; /* DaisyUI theme compatible */
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        @apply bg-base-content/50; /* DaisyUI theme compatible */
+      }
+      .hero-animation-area {
+        /* Renamed for clarity */
+        width: 100%;
+        max-width: 480px; /* Adjusted size */
+        height: 280px; /* Adjusted size */
+        border-radius: 0.75rem; /* Slightly more rounded */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1rem;
+        position: relative; /* For positioning icons */
+      }
+      /* Initial state for scroll animations */
+      .animate-on-scroll {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+      }
+      .animate-on-scroll.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Subtle animated gradient for hero (optional, can be demanding) */
+      .hero-gradient-animated {
+        background-size: 200% 200%;
+        animation: gradientShift 10s ease infinite;
+      }
+
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* Enhance focus visibility for accessibility */
+      *:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+      }
+    </style>
 
     <style>
       [x-cloak] {
@@ -71,19 +141,51 @@
       }
     </style>
 
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@5"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style type="text/tailwindcss">
+      
       @custom-variant dark (&:where([data-theme=night], [data-theme=night] *));
-    </style>
-  </head>
-  <body class="bg-base-100" hx-push-url="true">
-    <header>{{ template "navbar" . }}</header>
-    <div id="content" class="p-4 sample-transition">
-      <h1>UI Copilot</h1>
-      {{ block "content" . }}{{ end }}
-    </div>
-    {{template "toast.html"}}
 
-    {{template "confirmation.html"}}
+    </style>
+
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/motion@10.18.0/dist/motion.min.js"
+    ></script>
+
+    <script defer src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
+
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/split.js/dist/split.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"
+    ></script>
+  </head>
+  <body class="bg-base-100 text-base-content antialiased" hx-push-url="true">
+    {{ template "navbar" . }}
+    <div id="content" class="sample-transition">
+      {{if not .isLoggedIn}} {{template "index.html" .}} {{end}} {{ block
+      "content" . }}{{ end }}
+    </div>
+    {{template "toast.html"}} {{template "confirmation.html"}}
   </body>
 </html>
 {{ end }}
