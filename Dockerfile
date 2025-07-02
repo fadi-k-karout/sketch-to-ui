@@ -10,8 +10,8 @@ RUN go mod download
 COPY . .
 RUN go build -ldflags="-s -w" -o app .
 
-RUN go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+ 
 ENV PATH=$PATH:/go/bin
 
 CMD ["./app"]
