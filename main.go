@@ -21,7 +21,7 @@ import (
 func main() {
 	// Load .env file
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		slog.Warn("Error loading .env file")
 	}
 	ginMode := os.Getenv("GIN_MODE")
 	if ginMode == "" {
